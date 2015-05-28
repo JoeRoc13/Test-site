@@ -30,6 +30,17 @@ class User {
 		}
 	}
 
+	public function update($fields = array(), $id = null) {
+		
+		if(!$id && $this->isLoggedIn()) {
+			$id = $this->data()->id;
+		}
+
+		if(!$this->_db->update('users', $id, $fields)) {
+			throw new Exception('There was a problem updating.');
+		}
+	}
+
 	public function create($fields = array()) {
 		if(!$this->_db->insert('users', $fields)) {
 			throw new Exception('There was a problem creating an account.');
@@ -83,6 +94,19 @@ class User {
 			}
 		}
 		return false;
+	}
+
+	public function hasPermission($key) {
+		$group = $this->_db->get('groups', array('id', '=', $this->data()->group));
+
+		if($group->count()) {
+			$permissions = json_decode($group->first()->permissions, true);
+
+			if($permissions[$key] == true) {
+				return true;
+			}
+			return false;
+		}
 	}
 
 	public function exists() {
